@@ -33,40 +33,87 @@ public class ComplexNumberImpl implements ComplexNumber {
         return (imaginaryPart == 0);
     }
 
+
     @Override
     public void set(double re, double im) {
         realPart = re;
         imaginaryPart = im;
     }
 
+
+    // without check
     @Override
     public void set(String value) throws NumberFormatException {
-        String[] arrayValueRep = value.split("[+-]");
+        String[] parsedString = value.split("");
+        double realPart = 0;
+        double imaginaryPart = 0;
+        boolean hasRe = false;
+        boolean hasIm = false;
+        boolean firstIter = true;
 
-//        if(arrayValueRep.length > 2 || arrayValueRep.length <= 0) {
-//            throw new NumberFormatException();
-//        }
+        for (int i = parsedString.length - 1; i >= 0 ; i--) {
+            if (parsedString[i].equals("i")) {
+                i--;
+                int j = 1;
+                while(i >= 0) {
+                    if (parsedString[i].equals("-")) {
+                        if (firstIter) {
+                            throw new NumberFormatException();
+                        }
 
-        if (arrayValueRep.length == 2) {
-            realPart = Double.parseDouble(arrayValueRep[0]);
-            imaginaryPart = Double.parseDouble(arrayValueRep[1].
-                    substring(0, arrayValueRep[1].length() - 1));
-            return;
+                        imaginaryPart *= -1;
+                        break;
+                    }
+                    if (parsedString[i].equals("+")) {
+                        if (firstIter) {
+                            throw new NumberFormatException();
+                        }
+
+                        break;
+                    }
+
+                    if (j == 1) {
+                        firstIter = false;
+                        hasIm = true;
+                        imaginaryPart = Double.parseDouble(parsedString[i]);
+                    } else {
+                        imaginaryPart += (Double.parseDouble(parsedString[i]) == 0) ?
+                                (j) : (Double.parseDouble(parsedString[i]) * j);
+                    }
+                    j *= 10;
+                    i--;
+                }
+                continue;
+            }
+
+            int j = 1;
+            while (i >= 0) {
+                if (parsedString[i].equals("-")) {
+                    realPart *= -1;
+                    break;
+                }
+                if (j == 1) {
+                    hasRe = true;
+                    realPart = Double.parseDouble(parsedString[i]);
+                } else {
+                    realPart += (Double.parseDouble(parsedString[i]) == 0) ?
+                            (j) : (Double.parseDouble(parsedString[i]) * j);
+                }
+
+                j *= 10;
+                i--;
+            }
         }
 
-        if (arrayValueRep[0].contains("i")) {
-            imaginaryPart = Double.parseDouble(arrayValueRep[0].
-                    substring(0, arrayValueRep[0].length() - 1));
-        } else {
-            realPart = Double.parseDouble(arrayValueRep[0]);
-        }
-
-
+        this.realPart = realPart;
+        this.imaginaryPart = imaginaryPart;
     }
 
     @Override
     public ComplexNumber copy() {
-        return new ComplexNumberImpl(realPart, imaginaryPart);
+        ComplexNumber objectCopy = new ComplexNumberImpl();
+        objectCopy.set(this.getRe(), this.getIm());
+        return objectCopy;
     }
 
     @Override
@@ -119,8 +166,18 @@ public class ComplexNumberImpl implements ComplexNumber {
 
     public static void main(String[] args) {
         ComplexNumber complex = new ComplexNumberImpl();
-        complex.set("1-2i");
+        complex.set("1+2i");
+        System.out.println("Real part = " + complex.getRe() + " Imaginary part = " + complex.getIm());
+        complex.set(5, -3);
+        System.out.println("Real part = " + complex.getRe() + " Imaginary part = " + complex.getIm());
 
-        System.out.println(Double.parseDouble("-11dss"));
+        ComplexNumber complex1 = new ComplexNumberImpl(3, -2);
+        System.out.println("Complex1:");
+        System.out.println("Real part = " + complex1.getRe() + " Imaginary part = " + complex1.getIm());
+
+        ComplexNumber cop = complex1.copy();
+        System.out.println(cop.getRe() + "  im: " + cop.getIm());
+        System.out.println(cop.equals(complex1));
+
     }
 }
