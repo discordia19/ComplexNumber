@@ -65,8 +65,9 @@ public class ComplexNumberImpl implements ComplexNumber {
 
         realPart = 0;
         imaginaryPart = 0;
-        int i = value.length();
+        int i = value.length(); // length of current string to parse
 
+        // if "i" is last character(value has imaginary part)
         if (value.charAt(value.length() - 1) == 'i') {
             i = value.length() - 1;
             imaginaryPart = 1;
@@ -76,8 +77,10 @@ public class ComplexNumberImpl implements ComplexNumber {
                 return;
             }
 
+            // case "-xi" | "+xi" | "xi"
             for (int j = i - 1; j >= 0; j--) {
                 if (value.charAt(j) == '-') {
+                    // case "-i"
                     if (j == i - 1) {
                         imaginaryPart *= -1;
                         i = j;
@@ -92,7 +95,7 @@ public class ComplexNumberImpl implements ComplexNumber {
                     break;
                 }
 
-                // real part equals zero
+                // case "xi" (real part equals zero)
                 if (j == 0) {
                     imaginaryPart = Double.valueOf(value.substring(j, i));
                     return;
@@ -101,7 +104,9 @@ public class ComplexNumberImpl implements ComplexNumber {
 
         }
 
+        // for real part
         if (i == 0) {
+            // cases "-xi" | "+xi", x != 0
             if ((value.charAt(i) == '-' || value.charAt(i) == '+') & (getIm() != 0)) {
                 return;
             }
