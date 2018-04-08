@@ -199,6 +199,7 @@ public class ComplexNumberImpl implements ComplexNumber {
     }
 
     public static void main(String[] args) {
+        //
         try {
             ComplexNumber a = new ComplexNumberImpl(0, 0);
             a.set("1");
