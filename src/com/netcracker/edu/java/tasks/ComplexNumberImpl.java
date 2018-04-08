@@ -7,9 +7,27 @@ public class ComplexNumberImpl implements ComplexNumber {
     private double realPart;
     private double imaginaryPart;
 
+    private String toStringRe() {
+        return (getRe() != 0) ? String.valueOf(getRe()) : "";
+    }
+
+    private String toStringIm() {
+        if (getIm() > 0) {
+            if (getRe() == 0) {
+                return getIm() + "i";
+            } else {
+                return "+" + getIm() + "i";
+            }
+        } else if (getIm() < 0) {
+            return String.valueOf(getIm()) + "i";
+        } else {
+            return "";
+        }
+    }
+
     public ComplexNumberImpl() {
-        this.realPart = 0;
-        this.imaginaryPart = 0;
+        realPart = 0;
+        imaginaryPart = 0;
     }
 
     public ComplexNumberImpl(double realPart, double imaginaryPart) {
@@ -40,93 +58,85 @@ public class ComplexNumberImpl implements ComplexNumber {
         imaginaryPart = im;
     }
 
-
-    // without check
     @Override
     public void set(String value) throws NumberFormatException {
-        String[] parsedString = value.split("");
-        double realPart = 0;
-        double imaginaryPart = 0;
-        boolean hasRe = false;
-        boolean hasIm = false;
-        boolean firstIter = true;
+        if (value.length() == 0)
+            throw new NumberFormatException();
 
-        for (int i = parsedString.length - 1; i >= 0 ; i--) {
-            if (parsedString[i].equals("i")) {
-                i--;
-                int j = 1;
-                while(i >= 0) {
-                    if (parsedString[i].equals("-")) {
-                        if (firstIter) {
-                            throw new NumberFormatException();
-                        }
+        realPart = 0;
+        imaginaryPart = 0;
+        int i = value.length();
 
-                        imaginaryPart *= -1;
-                        break;
-                    }
-                    if (parsedString[i].equals("+")) {
-                        if (firstIter) {
-                            throw new NumberFormatException();
-                        }
+        if (value.charAt(value.length() - 1) == 'i') {
+            i = value.length() - 1;
+            imaginaryPart = 1;
 
-                        break;
-                    }
-
-                    if (j == 1) {
-                        firstIter = false;
-                        hasIm = true;
-                        imaginaryPart = Double.parseDouble(parsedString[i]);
-                    } else {
-                        imaginaryPart += (Double.parseDouble(parsedString[i]) == 0) ?
-                                (j) : (Double.parseDouble(parsedString[i]) * j);
-                    }
-                    j *= 10;
-                    i--;
-                }
-                continue;
+            // case "i"
+            if (value.length() == 1) {
+                return;
             }
 
-            int j = 1;
-            while (i >= 0) {
-                if (parsedString[i].equals("-")) {
-                    realPart *= -1;
+            for (int j = i - 1; j >= 0; j--) {
+                if (value.charAt(j) == '-') {
+                    if (j == i - 1) {
+                        imaginaryPart *= -1;
+                        i = j;
+                        break;
+                    }
+                    imaginaryPart = Double.valueOf(value.substring(j, i));
+                    i = j;
+                    break;
+                } else if (value.charAt(j) == '+') {
+                    imaginaryPart = Double.valueOf(value.substring(j, i));
+                    i = j;
                     break;
                 }
-                if (j == 1) {
-                    hasRe = true;
-                    realPart = Double.parseDouble(parsedString[i]);
-                } else {
-                    realPart += (Double.parseDouble(parsedString[i]) == 0) ?
-                            (j) : (Double.parseDouble(parsedString[i]) * j);
-                }
 
-                j *= 10;
-                i--;
+                // real part equals zero
+                if (j == 0) {
+                    imaginaryPart = Double.valueOf(value.substring(j, i));
+                    return;
+                }
             }
+
         }
 
-        this.realPart = realPart;
-        this.imaginaryPart = imaginaryPart;
+        if (i == 0) {
+            if ((value.charAt(i) == '-' || value.charAt(i) == '+') & (getIm() != 0)) {
+                return;
+            }
+
+            realPart = Double.valueOf(value);
+            return;
+        }
+
+        realPart = Double.valueOf(value.substring(0, i));
     }
 
     @Override
     public ComplexNumber copy() {
-        ComplexNumber objectCopy = new ComplexNumberImpl();
-        objectCopy.set(this.getRe(), this.getIm());
+        ComplexNumber objectCopy = new ComplexNumberImpl(getRe(), getIm());
         return objectCopy;
     }
 
     @Override
     public ComplexNumber clone() throws CloneNotSupportedException {
-        return copy();
+        return (ComplexNumberImpl) ComplexNumberImpl.super.clone();
+    }
+
+    /**
+     * @param complexNumber
+     * @return length of complex number vector (for vector representation of complex number)
+     */
+    private double complexNumberLenght(ComplexNumber complexNumber) {
+        return Math.sqrt((complexNumber.getRe() * complexNumber.getRe() + complexNumber.getIm() * complexNumber.getIm()));
     }
 
     @Override
-    // lazy
     public int compareTo(ComplexNumber other) {
-        if (getRe() > other.getRe()) {
+        if (complexNumberLenght(this) > complexNumberLenght(other)) {
             return 1;
-        } else if (getRe() < other.getRe()) {
+        } else if (complexNumberLenght(this) < complexNumberLenght(other)) {
             return -1;
         } else {
             return 0;
@@ -159,25 +169,44 @@ public class ComplexNumberImpl implements ComplexNumber {
 
     @Override
     public ComplexNumber multiply(ComplexNumber arg2) {
+        double oldRealPart = realPart;
         realPart = getRe() * arg2.getRe() - getIm() * arg2.getIm();
-        imaginaryPart = getRe() * arg2.getIm() + getIm() * arg2.getRe();
+        imaginaryPart = oldRealPart * arg2.getIm() + getIm() * arg2.getRe();
         return this;
     }
 
+
+    @Override
+    public String toString() {
+        String strRepresentation = toStringRe() + toStringIm();
+
+        if (strRepresentation.equals("")) {
+            return "imi";
+        } else {
+            return strRepresentation;
+        }
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if ((object instanceof ComplexNumber) &&
+                (getRe() == ((ComplexNumber) object).getRe()) &&
+                (getIm() == ((ComplexNumber) object).getIm())) {
+            return true;
+        }
+
+        return false;
+    }
+
     public static void main(String[] args) {
-        ComplexNumber complex = new ComplexNumberImpl();
-        complex.set("1+2i");
-        System.out.println("Real part = " + complex.getRe() + " Imaginary part = " + complex.getIm());
-        complex.set(5, -3);
-        System.out.println("Real part = " + complex.getRe() + " Imaginary part = " + complex.getIm());
+        try {
+            ComplexNumber a = new ComplexNumberImpl(0, 0);
+            a.set("1");
+            System.out.println("re: " + a.getRe() + " |  im: " + a.getIm() + "  |  " + a.toString());
 
-        ComplexNumber complex1 = new ComplexNumberImpl(3, -2);
-        System.out.println("Complex1:");
-        System.out.println("Real part = " + complex1.getRe() + " Imaginary part = " + complex1.getIm());
-
-        ComplexNumber cop = complex1.copy();
-        System.out.println(cop.getRe() + "  im: " + cop.getIm());
-        System.out.println(cop.equals(complex1));
-
+        } catch (NumberFormatException e) {
+            System.out.println("Error num format");
+        }
     }
 }
+
